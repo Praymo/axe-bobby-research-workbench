@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Axe Bobby Research Workbench</title>
+  <style>
+    :root { color-scheme: light; --ink: #172033; --muted: #5e6a7e; --line: #dce2ec; --panel: #fff; --bg: #f5f7fb; --green: #087f5b; --red: #b42318; --blue: #155eef; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.55 system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 1080px; margin: 0 auto; padding: 36px 20px 60px; }
+    .eyebrow { color: var(--blue); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+    h1 { margin: 8px 0 4px; font-size: clamp(28px, 5vw, 46px); line-height: 1.1; }
+    .intro { color: var(--muted); max-width: 760px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 26px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 6px 20px #1720330a; }
+    .card h2 { margin: 0 0 2px; font-size: 20px; }
+    .tag { display: inline-block; border-radius: 999px; padding: 3px 9px; font-weight: 700; font-size: 12px; }
+    .candidate { color: var(--green); background: #dff7ed; }
+    .blocked { color: var(--red); background: #ffebe9; }
+    .metric { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .metric:last-child { border-bottom: 0; }
+    .label { color: var(--muted); }
+    ul { padding-left: 20px; color: var(--muted); }
+    .foot { margin-top: 24px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Offline / Synthetic only</div>
+    <h1>Axe Bobby Research Workbench</h1>
+    <p class="intro">研究评分 Research score → 数据时效 Freshness → 风险阻断 Risk gate → 人工复核 Human review. This static page is a no-network companion to <code>workbench.py</code>.</p>
+    <section class="grid" aria-label="synthetic decision cases">
+      <article class="card">
+        <h2>DEMO-A · Synthetic Core</h2>
+        <span class="tag candidate">CANDIDATE · HUMAN REVIEW</span>
+        <div class="metric"><span class="label">Research score</span><strong>77.13</strong></div>
+        <div class="metric"><span class="label">Entry evidence</span><strong>9 / RIGHT_SIDE_CONFIRMATION</strong></div>
+        <div class="metric"><span class="label">Market</span><strong>FRESH · neutral</strong></div>
+        <div class="metric"><span class="label">Position reference</span><strong>3.00%</strong></div>
+        <ul><li>Confirm evidence date and freshness.</li><li>Check invalidation and maximum loss.</li><li>Record a human decision; no order is submitted.</li></ul>
+      </article>
+      <article class="card">
+        <h2>DEMO-B · Synthetic Stale</h2>
+        <span class="tag blocked">BLOCKED · STALE DATA</span>
+        <div class="metric"><span class="label">Research score</span><strong>77.13</strong></div>
+        <div class="metric"><span class="label">Entry evidence</span><strong>9 / RIGHT_SIDE_CONFIRMATION</strong></div>
+        <div class="metric"><span class="label">Market</span><strong>STALE · neutral</strong></div>
+        <div class="metric"><span class="label">Position reference</span><strong>0.00%</strong></div>
+        <ul><li>Market data exceeds the five-day freshness limit.</li><li>New long risk remains frozen until data recovers.</li></ul>
+      </article>
+      <article class="card">
+        <h2>DEMO-C · Synthetic Risk Case</h2>
+        <span class="tag blocked">BLOCKED · RESEARCH VETO</span>
+        <div class="metric"><span class="label">Research score</span><strong>54.00 cap</strong></div>
+        <div class="metric"><span class="label">Entry evidence</span><strong>9 / RIGHT_SIDE_CONFIRMATION</strong></div>
+        <div class="metric"><span class="label">Market</span><strong>FRESH · neutral</strong></div>
+        <div class="metric"><span class="label">Position reference</span><strong>0.00%</strong></div>
+        <ul><li>No stop condition is defined.</li><li>Price-in-risk and profit-taking pressure are both high.</li></ul>
+      </article>
+    </section>
+    <p class="foot">Synthetic cases only. The score is a rule demonstration, not a forecast, recommendation, or performance claim.</p>
+  </main>
+</body>
+</html>
