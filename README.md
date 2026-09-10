@@ -1,55 +1,50 @@
-# Axe Bobby Research Workbench
+# Axe Bobby · 投研复核工作台
 
-## 中文定位
+看好一家公司，和今天适不适合考虑入场，是两个问题。这个项目把研究证据、市场条件和风险限制拆开，最后留下一个人能复核的决定。
 
-这是一个可离线运行的 Axe Bobby 投研规则演示工作台。它把研究评分、市场数据时效闸门、风险阻断和人工复核步骤放在一条可检查的路径里，帮助研究者回答：当前证据是否足够进入人工复核？哪些条件必须先修复？
+这里放了两个阶段的成果：一个可以调参数的早期交互沙盘，以及从原项目抽出的 Python 规则。先看页面，比较容易理解它想解决什么。
 
-发布版只使用内置合成数据。它不读取真实行情、研究持仓、账号或消息渠道，也不会自动下单。页面中的 `DEMO-A/B/C` 是合成案例，不代表任何真实标的或收益结论。
+![高 IV 情景中的复核结果](assets/review-sandbox.jpg)
 
-## English positioning
+*入场条件得分不低，但 RR 只有 1.3，风险条件也没有通过，结果仍是 REJECT。页面所有数值都是内置样例。*
 
-An offline, audit-friendly research workbench for showing how a small set of investment rules becomes a human-review decision. It exposes the research score, freshness gate, risk blockers, position cap, and review checklist in one compact flow.
+## 打开沙盘
 
-The release ships synthetic cases only. It does not fetch market data, read portfolios, contact an account, or place orders. `DEMO-A/B/C` are synthetic examples and carry no performance claim.
-
-## Run the demo
-
-Requires Python 3.12 or a compatible Python 3 runtime. There are no third-party runtime dependencies.
-
-```bash
-python workbench.py
-python -m unittest discover -s tests -v
+```sh
+python3 -m http.server 8080
 ```
 
-The command prints JSON containing three paths:
+访问 `http://localhost:8080/demo/review-sandbox.html`。可以切换高 IV、低波动情景，调整阈值，观察入场理由和否决原因怎么变。通知预览只写入页面内的模拟收件箱。
 
-- `CANDIDATE`: research and timing evidence pass the local thresholds, but `manual_review_required` remains true.
-- `BLOCKED`: the market snapshot is stale, so new long risk is frozen even when the synthetic research score is strong.
-- `BLOCKED`: the research vetoes include missing stop discipline and an overheated price/positioning combination.
+![低波动情景](assets/review-calm.jpg)
 
-Open `demo/index.html` directly in a browser for the same static, no-network overview. The page has no external assets or requests.
+*切到低波动情景后，结果变成 MANUAL REVIEW，仍需人工复核。页面的仓位百分比是早期原型参数，不是实际配置建议。*
 
-## Rule boundary
+原来的三案例概览也保留在 [`demo/index.html`](demo/index.html)。
 
-The code is a curated extraction of the parent project's research scorer, market freshness gate, and entry evidence contract. The seven buckets retain the source vocabulary, including `kol_heat`, `price_in_risk`, and `profit_taking_pressure`; the source's KOL heat cap remains 80. The full price-history feature engineering and live adapters are intentionally outside this release so the example stays dependency-closed and offline. `EntryEvidence` is a simplified demonstration input: it stands in for observations that the parent project normally derives from completed bars and is not the production entry scorer.
+## Python 里保留了什么
 
-The decision loop is:
+规则按研究评分、否决项、市场状态和入场复核组织。输入直接注入，不需要行情账号。输出带着原因，方便逐项追问，而不只剩一个分数。
 
-```text
-synthetic research inputs
-  -> seven weighted research buckets
-  -> market freshness and regime gate
-  -> closed-bar entry evidence
-  -> blockers and position cap
-  -> human review checklist
+```sh
+python3 workbench.py
+python3 -m unittest discover -s tests -v
 ```
 
-There is no claim that the score predicts returns. The output is a review aid with explicit data and discipline boundaries.
+内置案例刻意放了几个对照：A 的研究证据可以进入候选复核；B 的评分相同，但数据过期，因此被阻断；C 触发研究否决项。高分不能绕过数据质量和否决条件。
 
-## Author contribution
+**交互沙盘和 Python 是两个阶段的实现，不是同一套模型的前后端。** 沙盘用来试交互和解释方式，Python 展示后续抽取的规则；二者分数和仓位参数不能直接对照。[设计记录](docs/design-notes.md)写了这条边界。
 
-The author defined the release requirements and guardrails. With Codex assistance, the rules were selectively extracted, synthetic cases were designed to expose candidate/stale/veto paths, and the boundary tests and offline release packaging were verified. The implementation keeps the source project's fail-closed behavior and does not imply trading performance.
+## 最想保留下来的三个决定
 
-## License
+- 长期研究和短期入场分开。研究理由成立，不代表当前价格和风险条件合适。
+- 数据过期、时间在未来或数值无效时，先阻断。不能把「不知道」当成「通过」。
+- 保留理由和需要复核的步骤。这里没有自动下单。
 
-The original release code is provided under the MIT License; see [`LICENSE`](LICENSE). Use it as a demonstration and adapt it to your own review process. No investment advice is provided.
+## 还没有证明什么
+
+把判断写清楚，不等于策略有稳定收益。公开版本没有完整回测、滚动样本外验证，也没有实盘执行记录。原项目里的真实数据接入、账户配置和运行快照没有一并发布。
+
+下一步需要验证的是：这些额外的限制到底减少了哪些错误，又错过了哪些机会。只增加指标，还回答不了这个问题。
+
+使用 Codex 辅助开发、规则抽取和整理。代码使用 MIT License。

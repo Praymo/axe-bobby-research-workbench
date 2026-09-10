@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>交易指导信号看板 Demo</title>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --panel-soft: #f1f4f6;
+        --line: #d8dee5;
+        --text: #17202a;
+        --muted: #657282;
+        --green: #15803d;
+        --green-soft: #e8f5ed;
+        --amber: #a16207;
+        --amber-soft: #fff4d6;
+        --red: #b42318;
+        --red-soft: #fde8e7;
+        --blue: #2563eb;
+        --ink: #101828;
+        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 24px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+      }
+
+      .mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: #101828;
+        color: #ffffff;
+        font-weight: 800;
+        flex: 0 0 auto;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .subhead {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .mode-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #b9c3cf;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #344054;
+        background: #ffffff;
+        white-space: nowrap;
+      }
+
+      .mode-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--blue);
+      }
+
+      main {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 22px 24px 36px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel,
+      .signal-card,
+      .metric,
+      .push-item {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .sidebar {
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .panel-title {
+        font-size: 15px;
+        font-weight: 800;
+        margin: 0;
+        color: var(--ink);
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: #344054;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 86px;
+        gap: 10px;
+        align-items: center;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: #1f7a4d;
+      }
+
+      input[type="number"],
+      select {
+        min-width: 0;
+        width: 100%;
+        border: 1px solid #c7d0da;
+        border-radius: 6px;
+        padding: 8px 9px;
+        color: var(--text);
+        background: #ffffff;
+      }
+
+      .unit-input {
+        display: grid;
+        grid-template-columns: 1fr 30px;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .unit {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .scenario-button,
+      .ghost-button,
+      .primary-button {
+        border: 1px solid #c7d0da;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #344054;
+        padding: 9px 10px;
+        font-weight: 800;
+        cursor: pointer;
+        min-height: 38px;
+      }
+
+      .scenario-button[aria-pressed="true"] {
+        border-color: #101828;
+        background: #101828;
+        color: #ffffff;
+      }
+
+      .primary-button {
+        background: #101828;
+        color: #ffffff;
+        border-color: #101828;
+      }
+
+      .ghost-button:hover,
+      .scenario-button:hover,
+      .primary-button:hover {
+        filter: brightness(0.97);
+      }
+
+      .content {
+        display: grid;
+        gap: 18px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1.2fr repeat(3, minmax(132px, 0.6fr));
+        gap: 12px;
+      }
+
+      .metric {
+        padding: 16px;
+        min-height: 118px;
+      }
+
+      .metric-main {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .metric-value {
+        margin-top: 8px;
+        font-size: 26px;
+        line-height: 1.05;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .metric-note {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.45;
+        font-size: 13px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 62px;
+        border-radius: 999px;
+        padding: 5px 9px;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .badge.low {
+        color: var(--green);
+        background: var(--green-soft);
+      }
+
+      .badge.normal {
+        color: var(--amber);
+        background: var(--amber-soft);
+      }
+
+      .badge.high {
+        color: var(--red);
+        background: var(--red-soft);
+      }
+
+      .workbench {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+        gap: 18px;
+      }
+
+      .chart-wrap {
+        min-height: 320px;
+      }
+
+      .chart {
+        width: 100%;
+        height: 250px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .legend {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .legend-line {
+        width: 22px;
+        height: 3px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .factor-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .factor {
+        display: grid;
+        gap: 7px;
+      }
+
+      .factor-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .factor-name {
+        color: #344054;
+        font-weight: 800;
+      }
+
+      .factor-value {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .bar {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e7edf2;
+      }
+
+      .bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: #547b63;
+        transition: width 160ms ease, background 160ms ease;
+      }
+
+      .signals-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .signal-card {
+        padding: 16px;
+        min-height: 196px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .signal-top {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .signal-title {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.25;
+        font-weight: 900;
+        color: var(--ink);
+      }
+
+      .signal-action {
+        font-size: 18px;
+        line-height: 1.25;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .signal-detail {
+        color: var(--muted);
+        line-height: 1.48;
+        font-size: 13px;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .kv-item {
+        background: var(--panel-soft);
+        border-radius: 6px;
+        padding: 9px;
+      }
+
+      .kv-label {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .kv-value {
+        margin-top: 4px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .push-panel {
+        display: grid;
+        gap: 12px;
+      }
+
+      .push-text {
+        min-height: 128px;
+        padding: 14px;
+        background: #101828;
+        color: #ffffff;
+        border-radius: 8px;
+        line-height: 1.55;
+        font-size: 13px;
+        word-break: break-word;
+      }
+
+      .push-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .inbox {
+        display: grid;
+        gap: 8px;
+        max-height: 260px;
+        overflow: auto;
+      }
+
+      .push-item {
+        box-shadow: none;
+        padding: 10px;
+        line-height: 1.45;
+        font-size: 12px;
+        color: #344054;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e7edf2;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      th:first-child,
+      td:first-child,
+      th:nth-child(2),
+      td:nth-child(2) {
+        text-align: left;
+      }
+
+      th {
+        color: #475467;
+        background: #f7f9fb;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tr.active-row td {
+        background: #fff7e6;
+      }
+
+      .small-muted {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .check-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .check-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid #e2e7ec;
+        border-radius: 6px;
+        background: #fafbfc;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .check-row input {
+        accent-color: #1f7a4d;
+      }
+
+      .entry-stack-grid {
+        display: grid;
+        grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.4fr) repeat(2, minmax(130px, 0.55fr));
+        gap: 12px;
+      }
+
+      .entry-cell {
+        padding: 12px;
+        border-radius: 7px;
+        background: var(--panel-soft);
+      }
+
+      .entry-value {
+        margin-top: 5px;
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .reason-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .reason-chip {
+        padding: 4px 7px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 1px solid #d5dde5;
+        color: #344054;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      @media (max-width: 1120px) {
+        .layout,
+        .workbench {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 780px) {
+        .topbar {
+          position: static;
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 16px;
+        }
+
+        main {
+          padding: 16px;
+        }
+
+        .sidebar,
+        .summary-grid,
+        .signals-grid,
+        .entry-stack-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .metric {
+          min-height: auto;
+        }
+
+        .segmented {
+          grid-template-columns: 1fr;
+        }
+
+        .push-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true">S</div>
+          <div>
+            <h1>交易指导信号看板 Demo</h1>
+            <div class="subhead">项目早期交互原型 · 内置样例参数 · 不连接行情或券商</div>
+          </div>
+        </div>
+        <div class="mode-pill"><span class="mode-dot"></span>Signal only</div>
+      </header>
+
+      <main>
+        <div class="layout">
+          <aside class="sidebar" aria-label="参数控制">
+            <section class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">情景</h2>
+              </div>
+              <div class="segmented">
+                <button class="scenario-button" data-scenario="calm" type="button">
+                  低波动
+                </button>
+                <button class="scenario-button" data-scenario="base" type="button">
+                  中性
+                </button>
+                <button class="scenario-button" data-scenario="stress" type="button">
+                  高 IV
+                </button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">当前参数</h2>
+              </div>
+              <div class="field-grid">
+                <label>
+                  标的收盘价
+                  <input id="close" type="number" step="0.001" />
+                </label>
+                <label>
+                  IV
+                  <div class="field-row">
+                    <input id="ivRange" type="range" min="10" max="45" step="0.1" />
+                    <div class="unit-input">
+                      <input id="iv" type="number" min="10" max="45" step="0.1" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+                <label>
+                  HV
+                  <div class="field-row">
+                    <input id="hvRange" type="range" min="8" max="38" step="0.1" />
+                    <div class="unit-input">
+                      <input id="hv" type="number" min="8" max="38" step="0.1" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+                <label>
+                  Skew
+                  <div class="field-row">
+                    <input id="skewRange" type="range" min="0" max="18" step="0.1" />
+                    <div class="unit-input">
+                      <input id="skew" type="number" min="0" max="18" step="0.1" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+                <label>
+                  期限结构
+                  <div class="field-row">
+                    <input id="termRange" type="range" min="-6" max="8" step="0.1" />
+                    <div class="unit-input">
+                      <input id="term" type="number" min="-6" max="8" step="0.1" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">阈值</h2>
+              </div>
+              <div class="field-grid">
+                <label>
+                  高 IV 分位
+                  <div class="field-row">
+                    <input id="ivHighRange" type="range" min="0.55" max="0.95" step="0.01" />
+                    <input id="ivHigh" type="number" min="0.55" max="0.95" step="0.01" />
+                  </div>
+                </label>
+                <label>
+                  低 IV 分位
+                  <div class="field-row">
+                    <input id="ivLowRange" type="range" min="0.05" max="0.45" step="0.01" />
+                    <input id="ivLow" type="number" min="0.05" max="0.45" step="0.01" />
+                  </div>
+                </label>
+                <label>
+                  IV-HV 风险差
+                  <div class="field-row">
+                    <input id="spreadHighRange" type="range" min="2" max="16" step="0.5" />
+                    <div class="unit-input">
+                      <input id="spreadHigh" type="number" min="2" max="16" step="0.5" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+                <label>
+                  Skew 风险阈值
+                  <div class="field-row">
+                    <input id="skewHighRange" type="range" min="3" max="16" step="0.5" />
+                    <div class="unit-input">
+                      <input id="skewHigh" type="number" min="3" max="16" step="0.5" />
+                      <span class="unit">%</span>
+                    </div>
+                  </div>
+                </label>
+                <label>
+                  Risk-off 最小分数
+                  <select id="riskOffScore">
+                    <option value="2">2 项触发</option>
+                    <option value="3">3 项触发</option>
+                    <option value="4">4 项触发</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">Logic Stack 入场理由</h2>
+              </div>
+              <div class="check-grid">
+                <label class="check-row"><input id="entryChannel" type="checkbox" />通道下沿 +2</label>
+                <label class="check-row"><input id="entrySweep" type="checkbox" />刺破收回 +3</label>
+                <label class="check-row"><input id="entryWick" type="checkbox" />长下影 +2</label>
+                <label class="check-row"><input id="entrySequence" type="checkbox" />连续阳线 +2</label>
+                <label class="check-row"><input id="entryReclaim" type="checkbox" />站回关键位 +2</label>
+                <label class="check-row"><input id="entryRsiDiv" type="checkbox" />RSI 背离 +2</label>
+                <label class="check-row"><input id="entryMacdDiv" type="checkbox" />MACD 背离 +2</label>
+                <label class="check-row"><input id="entryHigherLow" type="checkbox" />更高低点 +1</label>
+              </div>
+              <div class="field-grid" style="margin-top: 12px">
+                <label>
+                  计划盈亏比
+                  <input id="entryRR" type="number" min="0" max="10" step="0.1" />
+                </label>
+              </div>
+            </section>
+          </aside>
+
+          <section class="content" aria-label="信号结果">
+            <section class="summary-grid">
+              <div class="metric">
+                <div class="metric-main">
+                  <div>
+                    <div class="metric-label">当前风险状态</div>
+                    <div class="metric-value" id="regimeText">-</div>
+                  </div>
+                  <span class="badge normal" id="regimeBadge">-</span>
+                </div>
+                <div class="metric-note" id="regimeNote">-</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">风险分数</div>
+                <div class="metric-value" id="riskScore">-</div>
+                <div class="metric-note" id="riskScoreNote">-</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">建议权益仓位</div>
+                <div class="metric-value" id="targetPosition">-</div>
+                <div class="metric-note" id="positionNote">-</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Agent 推送等级</div>
+                <div class="metric-value" id="pushLevel">-</div>
+                <div class="metric-note" id="pushNote">-</div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2 class="panel-title">组合决策：Logic Stack 入场层</h2>
+                  <div class="small-muted">研究评分之后、纪律检查之前；反向条件只作为做多否决，不用于开空。</div>
+                </div>
+                <span class="badge normal" id="entryBadge">-</span>
+              </div>
+              <div class="entry-stack-grid">
+                <div class="entry-cell">
+                  <div class="metric-label">入场评分</div>
+                  <div class="entry-value" id="entryScore">-</div>
+                </div>
+                <div class="entry-cell">
+                  <div class="metric-label">触发理由</div>
+                  <div class="reason-chips" id="entryReasons"></div>
+                </div>
+                <div class="entry-cell">
+                  <div class="metric-label">计划盈亏比</div>
+                  <div class="entry-value" id="entryRRText">-</div>
+                </div>
+                <div class="entry-cell">
+                  <div class="metric-label">最终状态</div>
+                  <div class="entry-value" id="entryDecision">-</div>
+                </div>
+              </div>
+              <div class="metric-note" id="entryNote">-</div>
+            </section>
+
+            <section class="workbench">
+              <div class="panel chart-wrap">
+                <div class="panel-header">
+                  <h2 class="panel-title">样例窗口</h2>
+                  <span class="small-muted" id="activeDate">-</span>
+                </div>
+                <svg class="chart" id="riskChart" role="img" aria-label="收盘价与 IV 样例走势"></svg>
+                <div class="legend">
+                  <span class="legend-item" style="color: #1f7a4d"><span class="legend-line"></span>IV</span>
+                  <span class="legend-item" style="color: #344054"><span class="legend-line"></span>收盘价</span>
+                  <span class="legend-item" style="color: #b42318"><span class="legend-line"></span>当前参数</span>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-header">
+                  <h2 class="panel-title">触发项</h2>
+                  <span class="badge normal" id="factorBadge">-</span>
+                </div>
+                <div class="factor-list" id="factorList"></div>
+              </div>
+            </section>
+
+            <section class="signals-grid">
+              <article class="signal-card">
+                <div class="signal-top">
+                  <h2 class="signal-title">基金权益对冲</h2>
+                  <span class="badge normal" id="hedgeBadge">-</span>
+                </div>
+                <div class="signal-action" id="hedgeAction">-</div>
+                <div class="signal-detail" id="hedgeDetail">-</div>
+                <div class="kv">
+                  <div class="kv-item">
+                    <div class="kv-label">对冲比例</div>
+                    <div class="kv-value" id="hedgeRatio">-</div>
+                  </div>
+                  <div class="kv-item">
+                    <div class="kv-label">执行方式</div>
+                    <div class="kv-value">人工确认</div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="signal-card">
+                <div class="signal-top">
+                  <h2 class="signal-title">波动率仓位</h2>
+                  <span class="badge normal" id="positionBadge">-</span>
+                </div>
+                <div class="signal-action" id="positionAction">-</div>
+                <div class="signal-detail" id="positionDetail">-</div>
+                <div class="kv">
+                  <div class="kv-item">
+                    <div class="kv-label">目标仓位</div>
+                    <div class="kv-value" id="positionRatio">-</div>
+                  </div>
+                  <div class="kv-item">
+                    <div class="kv-label">前置条件</div>
+                    <div class="kv-value" id="positionCondition">-</div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="signal-card">
+                <div class="signal-top">
+                  <h2 class="signal-title">期权收益增强</h2>
+                  <span class="badge normal" id="incomeBadge">-</span>
+                </div>
+                <div class="signal-action" id="incomeAction">-</div>
+                <div class="signal-detail" id="incomeDetail">-</div>
+                <div class="kv">
+                  <div class="kv-item">
+                    <div class="kv-label">覆盖范围</div>
+                    <div class="kv-value" id="incomeScope">-</div>
+                  </div>
+                  <div class="kv-item">
+                    <div class="kv-label">尾部处理</div>
+                    <div class="kv-value" id="incomeTail">-</div>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="workbench">
+              <div class="panel push-panel">
+                <div class="panel-header">
+                  <h2 class="panel-title">Agent 推送预览</h2>
+                  <span class="small-muted" id="pushTime">-</span>
+                </div>
+                <div class="push-text" id="pushText">-</div>
+                <div class="push-actions">
+                  <button class="primary-button" id="sendButton" type="button">推送到模拟收件箱</button>
+                  <button class="ghost-button" id="resetButton" type="button">恢复默认参数</button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-header">
+                  <h2 class="panel-title">模拟收件箱</h2>
+                  <span class="small-muted" id="inboxCount">0 条</span>
+                </div>
+                <div class="inbox" id="inbox"></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">最近样例数据</h2>
+                <span class="small-muted">页面内置样例，用于交互演示</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>日期</th>
+                      <th>状态</th>
+                      <th>收盘价</th>
+                      <th>IV</th>
+                      <th>HV</th>
+                      <th>Skew</th>
+                      <th>期限结构</th>
+                      <th>分数</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sampleTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const sampleRows = [
+        { date: "2024-01-02", close: 2.3, iv: 0.18, hv: 0.15, skew: 0.04, term: -0.01 },
+        { date: "2024-01-03", close: 2.312, iv: 0.175, hv: 0.148, skew: 0.038, term: -0.012 },
+        { date: "2024-01-04", close: 2.298, iv: 0.19, hv: 0.152, skew: 0.045, term: -0.006 },
+        { date: "2024-01-05", close: 2.276, iv: 0.23, hv: 0.16, skew: 0.071, term: 0.008 },
+        { date: "2024-01-08", close: 2.242, iv: 0.26, hv: 0.172, skew: 0.091, term: 0.018 },
+        { date: "2024-01-09", close: 2.25, iv: 0.245, hv: 0.18, skew: 0.084, term: 0.012 },
+        { date: "2024-01-10", close: 2.238, iv: 0.255, hv: 0.184, skew: 0.088, term: 0.015 },
+        { date: "2024-01-11", close: 2.268, iv: 0.218, hv: 0.178, skew: 0.063, term: 0.002 },
+        { date: "2024-01-12", close: 2.292, iv: 0.198, hv: 0.17, skew: 0.052, term: -0.004 },
+        { date: "2024-01-15", close: 2.31, iv: 0.181, hv: 0.16, skew: 0.042, term: -0.011 },
+        { date: "2024-01-16", close: 2.322, iv: 0.168, hv: 0.154, skew: 0.035, term: -0.016 },
+        { date: "2024-01-17", close: 2.305, iv: 0.176, hv: 0.156, skew: 0.037, term: -0.012 },
+        { date: "2024-01-18", close: 2.335, iv: 0.16, hv: 0.151, skew: 0.03, term: -0.018 },
+        { date: "2024-01-19", close: 2.362, iv: 0.151, hv: 0.148, skew: 0.027, term: -0.02 },
+        { date: "2024-01-22", close: 2.354, iv: 0.17, hv: 0.149, skew: 0.034, term: -0.014 },
+      ];
+
+      const scenarios = {
+        calm: { close: 2.362, iv: 0.151, hv: 0.148, skew: 0.027, term: -0.02, entryChannel: true, entrySweep: false, entryWick: false, entrySequence: true, entryReclaim: true, entryRsiDiv: false, entryMacdDiv: false, entryHigherLow: true, entryRR: 2.4 },
+        base: { close: 2.292, iv: 0.198, hv: 0.17, skew: 0.052, term: -0.004, entryChannel: false, entrySweep: true, entryWick: true, entrySequence: false, entryReclaim: true, entryRsiDiv: false, entryMacdDiv: true, entryHigherLow: false, entryRR: 2.1 },
+        stress: { close: 2.242, iv: 0.26, hv: 0.172, skew: 0.091, term: 0.018, entryChannel: true, entrySweep: true, entryWick: true, entrySequence: false, entryReclaim: false, entryRsiDiv: true, entryMacdDiv: false, entryHigherLow: false, entryRR: 1.3 },
+      };
+
+      const defaults = {
+        scenario: "stress",
+        close: scenarios.stress.close,
+        iv: scenarios.stress.iv,
+        hv: scenarios.stress.hv,
+        skew: scenarios.stress.skew,
+        term: scenarios.stress.term,
+        ivHigh: 0.8,
+        ivLow: 0.3,
+        spreadHigh: 0.08,
+        skewHigh: 0.08,
+        riskOffScore: 2,
+        entryChannel: scenarios.stress.entryChannel,
+        entrySweep: scenarios.stress.entrySweep,
+        entryWick: scenarios.stress.entryWick,
+        entrySequence: scenarios.stress.entrySequence,
+        entryReclaim: scenarios.stress.entryReclaim,
+        entryRsiDiv: scenarios.stress.entryRsiDiv,
+        entryMacdDiv: scenarios.stress.entryMacdDiv,
+        entryHigherLow: scenarios.stress.entryHigherLow,
+        entryRR: scenarios.stress.entryRR,
+      };
+
+      const state = { ...defaults, inbox: [] };
+      const ids = [
+        "close",
+        "iv",
+        "hv",
+        "skew",
+        "term",
+        "ivHigh",
+        "ivLow",
+        "spreadHigh",
+        "skewHigh",
+        "riskOffScore",
+        "entryRR",
+      ];
+
+      const entryCheckIds = [
+        "entryChannel",
+        "entrySweep",
+        "entryWick",
+        "entrySequence",
+        "entryReclaim",
+        "entryRsiDiv",
+        "entryMacdDiv",
+        "entryHigherLow",
+      ];
+
+      const percentInputIds = new Set(["iv", "hv", "skew", "term", "spreadHigh", "skewHigh"]);
+
+      const pairedRanges = {
+        iv: "ivRange",
+        hv: "hvRange",
+        skew: "skewRange",
+        term: "termRange",
+        ivHigh: "ivHighRange",
+        ivLow: "ivLowRange",
+        spreadHigh: "spreadHighRange",
+        skewHigh: "skewHighRange",
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const pct = (value, digits = 1) => `${(value * 100).toFixed(digits)}%`;
+      const point = (value) => `${(value * 100).toFixed(1)}pt`;
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+      function percentileRank(values, current) {
+        if (!values.length) return 0.5;
+        const belowOrEqual = values.filter((value) => value <= current).length;
+        return belowOrEqual / values.length;
+      }
+
+      function average(values) {
+        return values.reduce((sum, value) => sum + value, 0) / values.length;
+      }
+
+      function getControls() {
+        const values = {};
+        ids.forEach((id) => {
+          const element = $(id);
+          const raw = element.tagName === "SELECT" ? Number(element.value) : Number(element.value);
+          values[id] = percentInputIds.has(id) ? raw / 100 : raw;
+        });
+        entryCheckIds.forEach((id) => {
+          values[id] = $(id).checked;
+        });
+        return values;
+      }
+
+      function controlDisplayValue(id, value) {
+        if (!percentInputIds.has(id)) return value;
+        return (value * 100).toFixed(1);
+      }
+
+      function syncInputsFromState() {
+        ids.forEach((id) => {
+          $(id).value = controlDisplayValue(id, state[id]);
+        });
+        Object.entries(pairedRanges).forEach(([sourceId, rangeId]) => {
+          $(rangeId).value = controlDisplayValue(sourceId, state[sourceId]);
+        });
+        entryCheckIds.forEach((id) => {
+          $(id).checked = Boolean(state[id]);
+        });
+        document.querySelectorAll(".scenario-button").forEach((button) => {
+          button.setAttribute("aria-pressed", String(button.dataset.scenario === state.scenario));
+        });
+      }
+
+      function setStateFromInputs() {
+        Object.assign(state, getControls());
+        state.scenario = "custom";
+        document.querySelectorAll(".scenario-button").forEach((button) => {
+          button.setAttribute("aria-pressed", "false");
+        });
+      }
+
+      function bindPair(inputId, rangeId) {
+        const input = $(inputId);
+        const range = $(rangeId);
+        input.addEventListener("input", () => {
+          range.value = input.value;
+          setStateFromInputs();
+          render();
+        });
+        range.addEventListener("input", () => {
+          input.value = range.value;
+          setStateFromInputs();
+          render();
+        });
+      }
+
+      function riskFromValues(values) {
+        const historicalIvs = sampleRows.map((row) => row.iv);
+        const ivPercentile = percentileRank(historicalIvs, values.iv);
+        const spread = values.iv - values.hv;
+        const triggers = [
+          {
+            key: "iv",
+            name: "IV 分位",
+            value: ivPercentile,
+            limit: values.ivHigh,
+            active: ivPercentile >= values.ivHigh,
+            displayValue: pct(ivPercentile, 0),
+            displayLimit: `>= ${pct(values.ivHigh, 0)}`,
+            weight: clamp(ivPercentile, 0, 1),
+          },
+          {
+            key: "spread",
+            name: "IV-HV",
+            value: spread,
+            limit: values.spreadHigh,
+            active: spread >= values.spreadHigh,
+            displayValue: point(spread),
+            displayLimit: `>= ${point(values.spreadHigh)}`,
+            weight: clamp(spread / values.spreadHigh, 0, 1),
+          },
+          {
+            key: "skew",
+            name: "Skew",
+            value: values.skew,
+            limit: values.skewHigh,
+            active: values.skew >= values.skewHigh,
+            displayValue: pct(values.skew, 1),
+            displayLimit: `>= ${pct(values.skewHigh, 1)}`,
+            weight: clamp(values.skew / values.skewHigh, 0, 1),
+          },
+          {
+            key: "term",
+            name: "期限结构",
+            value: values.term,
+            limit: 0,
+            active: values.term >= 0,
+            displayValue: point(values.term),
+            displayLimit: ">= 0.0pt",
+            weight: clamp((values.term + 0.04) / 0.08, 0, 1),
+          },
+        ];
+        const score = triggers.filter((trigger) => trigger.active).length;
+        let regime = "normal";
+        if (score >= values.riskOffScore) regime = "high";
+        if (ivPercentile <= values.ivLow && score === 0) regime = "low";
+        return { ivPercentile, spread, triggers, score, regime };
+      }
+
+      function entryFromValues(values, risk) {
+        const factors = [
+          [values.entryChannel, 2, "通道下沿"],
+          [values.entrySweep, 3, "刺破支撑收回"],
+          [values.entryWick, 2, "长下影"],
+          [values.entrySequence, 2, "连续阳线"],
+          [values.entryReclaim, 2, "站回关键位"],
+          [values.entryRsiDiv, 2, "RSI 底背离"],
+          [values.entryMacdDiv, 2, "MACD 底背离"],
+          [values.entryHigherLow, 1, "更高低点"],
+        ];
+        const reasons = factors.filter(([active]) => active).map(([, , reason]) => reason);
+        const rrGood = values.entryRR >= 1.8;
+        let score = factors.reduce((sum, [active, weight]) => sum + (active ? weight : 0), 0);
+        if (rrGood) {
+          score += 1;
+          reasons.push("盈亏比合格");
+        }
+
+        const vetoes = [];
+        if (!rrGood) vetoes.push("盈亏比低于 1.8");
+        if (risk.regime === "high") vetoes.push("期权市场处于 Risk off");
+        const forbidden = vetoes.length > 0;
+        let state = "不入场";
+        let decision = "WAIT";
+        let badge = "等待";
+        let className = "normal";
+        if (forbidden) {
+          state = "风险否决";
+          decision = "REJECT";
+          badge = "禁止追单";
+          className = "high";
+        } else if (score >= 10) {
+          state = "强多信号";
+          decision = "MANUAL REVIEW";
+          badge = "强信号";
+          className = "low";
+        } else if (score >= 8) {
+          state = "多头右侧确认";
+          decision = "MANUAL REVIEW";
+          badge = "右侧确认";
+          className = "low";
+        } else if (score >= 6) {
+          state = "多头左侧小仓";
+          decision = "SMALL ONLY";
+          badge = "小仓试错";
+          className = "normal";
+        } else if (score >= 4) {
+          state = "多头观察";
+          decision = "WATCH";
+          badge = "观察";
+          className = "normal";
+        }
+        return { score, reasons, vetoes, forbidden, state, decision, badge, className };
+      }
+
+      function decisions(values, risk) {
+        const labels = {
+          high: {
+            regime: "高期权风险",
+            note: "推送降风险提示，交易仍需人工确认。",
+            badge: "Risk off",
+            level: "高",
+          },
+          normal: {
+            regime: "正常观察",
+            note: "维持默认观察，不主动扩大风险。",
+            badge: "Watch",
+            level: "中",
+          },
+          low: {
+            regime: "低期权风险",
+            note: "可以进入加仓候选，但仍要看价格和基本面验证。",
+            badge: "Risk on",
+            level: "低",
+          },
+        };
+
+        const d = labels[risk.regime];
+        const result = {
+          labels: d,
+          hedge: {},
+          position: {},
+          income: {},
+        };
+
+        if (risk.regime === "high") {
+          result.hedge = {
+            badge: "提高",
+            className: "high",
+            action: "提高对冲",
+            detail: "IV、skew 或期限结构恶化时，优先用对冲降低组合 beta，而不是让系统自动卖出持仓。",
+            ratio: 0.8,
+          };
+          result.position = {
+            badge: "降仓",
+            className: "high",
+            action: "权益仓位降至防守档",
+            detail: "仓位信号只给出目标区间；实际交易由交易员结合流动性和持仓结构确认。",
+            ratio: 0.25,
+            condition: "2 项以上",
+          };
+          result.income = {
+            badge: "保护",
+            className: "high",
+            action: "减少卖权，买保护",
+            detail: "高风险状态下，收益增强不应继续裸露尾部风险，优先降低短 option 暴露。",
+            scope: "暂停扩张",
+            tail: "买保护",
+          };
+        } else if (risk.regime === "low") {
+          result.hedge = {
+            badge: "解除",
+            className: "low",
+            action: "解除临时对冲",
+            detail: "期权风险低时，对冲仓可回到观察或空档，但仍需价格趋势配合。",
+            ratio: 0,
+          };
+          result.position = {
+            badge: "加仓",
+            className: "low",
+            action: "进入加仓候选",
+            detail: "低 IV 不是买入理由本身，只是降低等待成本和路径风险的辅助条件。",
+            ratio: 1,
+            condition: "趋势确认",
+          };
+          result.income = {
+            badge: "轻仓",
+            className: "low",
+            action: "保守卖出备兑",
+            detail: "风险较低时可保留收益增强，但避免因 IV 过低而卖出过便宜的保护。",
+            scope: "备兑优先",
+            tail: "不裸露",
+          };
+        } else {
+          result.hedge = {
+            badge: "维持",
+            className: "normal",
+            action: "维持 beta 对冲",
+            detail: "没有足够风险触发项时，保持中性对冲，不因单个指标波动频繁切换。",
+            ratio: 0.45,
+          };
+          result.position = {
+            badge: "中性",
+            className: "normal",
+            action: "维持中性仓位",
+            detail: "等待 IV 分位、价差或 skew 给出更明确方向，再推送调仓建议。",
+            ratio: 0.6,
+            condition: "等待确认",
+          };
+          result.income = {
+            badge: "正常",
+            className: "normal",
+            action: "小额收益增强",
+            detail: "正常状态下可做有限覆盖，但把止损和尾部保护作为交易前置条件。",
+            scope: "有限覆盖",
+            tail: "规则止损",
+          };
+        }
+        return result;
+      }
+
+      function setBadge(id, className, text) {
+        const el = $(id);
+        el.className = `badge ${className}`;
+        el.textContent = text;
+      }
+
+      function renderFactors(risk) {
+        const list = $("factorList");
+        list.innerHTML = "";
+        risk.triggers.forEach((trigger) => {
+          const fillColor = trigger.active ? "#b42318" : "#547b63";
+          const node = document.createElement("div");
+          node.className = "factor";
+          node.innerHTML = `
+            <div class="factor-row">
+              <span class="factor-name">${trigger.name}</span>
+              <span class="factor-value">${trigger.displayValue} / ${trigger.displayLimit}</span>
+            </div>
+            <div class="bar"><div class="bar-fill" style="width:${Math.round(trigger.weight * 100)}%; background:${fillColor}"></div></div>
+          `;
+          list.appendChild(node);
+        });
+      }
+
+      function renderEntry(entry, values) {
+        setBadge("entryBadge", entry.className, entry.badge);
+        $("entryScore").textContent = `${entry.score} 分｜${entry.state}`;
+        $("entryRRText").textContent = values.entryRR.toFixed(1);
+        $("entryDecision").textContent = entry.decision;
+        const container = $("entryReasons");
+        container.innerHTML = "";
+        const reasons = entry.reasons.length ? entry.reasons : ["暂无入场理由"];
+        reasons.forEach((reason) => {
+          const chip = document.createElement("span");
+          chip.className = "reason-chip";
+          chip.textContent = reason;
+          container.appendChild(chip);
+        });
+        $("entryNote").textContent = entry.vetoes.length
+          ? `风险否决：${entry.vetoes.join("；")}。系统等待，不自动下单。`
+          : `状态：${entry.state}。通过后仍须进入 Axe Bobby 六道纪律闸门。`;
+      }
+
+      function chartPath(rows, field, width, height, pad) {
+        const values = rows.map((row) => row[field]);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const span = max - min || 1;
+        return rows
+          .map((row, index) => {
+            const x = pad + (index / (rows.length - 1)) * (width - pad * 2);
+            const y = height - pad - ((row[field] - min) / span) * (height - pad * 2);
+            return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+          })
+          .join(" ");
+      }
+
+      function renderChart(values, risk) {
+        const svg = $("riskChart");
+        const width = 760;
+        const height = 250;
+        const pad = 28;
+        const rows = [...sampleRows, { date: "当前", close: values.close, iv: values.iv }];
+        const closePath = chartPath(rows, "close", width, height, pad);
+        const ivPath = chartPath(rows, "iv", width, height, pad);
+        const lastX = pad + ((rows.length - 1) / (rows.length - 1)) * (width - pad * 2);
+        const currentClass = risk.regime === "high" ? "#b42318" : risk.regime === "low" ? "#15803d" : "#a16207";
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.innerHTML = `
+          <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#d8dee5" />
+          <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#d8dee5" />
+          <path d="${closePath}" fill="none" stroke="#344054" stroke-width="3" stroke-linecap="round" />
+          <path d="${ivPath}" fill="none" stroke="#1f7a4d" stroke-width="3" stroke-linecap="round" />
+          <line x1="${lastX}" y1="${pad}" x2="${lastX}" y2="${height - pad}" stroke="${currentClass}" stroke-width="2" stroke-dasharray="5 5" />
+          <circle cx="${lastX}" cy="${height / 2}" r="6" fill="${currentClass}" />
+          <text x="${pad}" y="20" fill="#657282" font-size="12">IV ${pct(values.iv, 1)} / Close ${values.close.toFixed(3)}</text>
+        `;
+      }
+
+      function classifySample(row) {
+        const values = {
+          ...getControls(),
+          close: row.close,
+          iv: row.iv,
+          hv: row.hv,
+          skew: row.skew,
+          term: row.term,
+        };
+        return riskFromValues(values);
+      }
+
+      function renderTable() {
+        const body = $("sampleTable");
+        body.innerHTML = "";
+        sampleRows.forEach((row) => {
+          const risk = classifySample(row);
+          const status = risk.regime === "high" ? "高风险" : risk.regime === "low" ? "低风险" : "观察";
+          const tr = document.createElement("tr");
+          if (
+            Math.abs(row.iv - state.iv) < 0.0001 &&
+            Math.abs(row.hv - state.hv) < 0.0001 &&
+            Math.abs(row.skew - state.skew) < 0.0001
+          ) {
+            tr.className = "active-row";
+          }
+          tr.innerHTML = `
+            <td>${row.date}</td>
+            <td>${status}</td>
+            <td>${row.close.toFixed(3)}</td>
+            <td>${pct(row.iv, 1)}</td>
+            <td>${pct(row.hv, 1)}</td>
+            <td>${pct(row.skew, 1)}</td>
+            <td>${point(row.term)}</td>
+            <td>${risk.score}</td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+
+      function buildPush(values, risk, decision, entry) {
+        const active = risk.triggers
+          .filter((trigger) => trigger.active)
+          .map((trigger) => `${trigger.name} ${trigger.displayValue}`)
+          .join("，");
+        const reason = active || "没有核心风险项触发";
+        return `【交易指导】${decision.labels.regime}｜风险分数 ${risk.score}/4。${reason}。入场评分 ${entry.score} 分（${entry.state}），最终状态 ${entry.decision}。基金对冲：${decision.hedge.action}至 ${pct(decision.hedge.ratio, 0)}；波动率仓位：${decision.position.action}至 ${pct(decision.position.ratio, 0)}。信号仅供人工确认，不自动下单。`;
+      }
+
+      function render() {
+        const values = getControls();
+        Object.assign(state, values);
+        const risk = riskFromValues(values);
+        const decision = decisions(values, risk);
+        const entry = entryFromValues(values, risk);
+        const regimeClass = risk.regime === "high" ? "high" : risk.regime === "low" ? "low" : "normal";
+        const regimeBadge = decision.labels.badge;
+
+        $("regimeText").textContent = decision.labels.regime;
+        $("regimeNote").textContent = decision.labels.note;
+        setBadge("regimeBadge", regimeClass, regimeBadge);
+        $("riskScore").textContent = `${risk.score}/4`;
+        $("riskScoreNote").textContent = `${risk.triggers.filter((item) => item.active).length} 个指标超过阈值`;
+        $("targetPosition").textContent = pct(decision.position.ratio, 0);
+        $("positionNote").textContent = decision.position.action;
+        $("pushLevel").textContent = decision.labels.level;
+        $("pushNote").textContent = risk.regime === "high" ? "立即推送" : risk.regime === "normal" ? "收盘检查" : "候选提醒";
+        $("activeDate").textContent = state.scenario === "custom" ? "自定义当前参数" : `${state.scenario} 情景`;
+        $("factorBadge").textContent = `${risk.score}/4`;
+        $("factorBadge").className = `badge ${regimeClass}`;
+
+        setBadge("hedgeBadge", decision.hedge.className, decision.hedge.badge);
+        $("hedgeAction").textContent = decision.hedge.action;
+        $("hedgeDetail").textContent = decision.hedge.detail;
+        $("hedgeRatio").textContent = pct(decision.hedge.ratio, 0);
+
+        setBadge("positionBadge", decision.position.className, decision.position.badge);
+        $("positionAction").textContent = decision.position.action;
+        $("positionDetail").textContent = decision.position.detail;
+        $("positionRatio").textContent = pct(decision.position.ratio, 0);
+        $("positionCondition").textContent = decision.position.condition;
+
+        setBadge("incomeBadge", decision.income.className, decision.income.badge);
+        $("incomeAction").textContent = decision.income.action;
+        $("incomeDetail").textContent = decision.income.detail;
+        $("incomeScope").textContent = decision.income.scope;
+        $("incomeTail").textContent = decision.income.tail;
+
+        renderFactors(risk);
+        renderEntry(entry, values);
+        renderChart(values, risk);
+        renderTable();
+        $("pushText").textContent = buildPush(values, risk, decision, entry);
+        $("pushTime").textContent = new Date().toLocaleString("zh-CN", { hour12: false });
+      }
+
+      function addPush() {
+        const text = $("pushText").textContent;
+        if (!text || text === "-") return;
+        state.inbox.unshift({
+          text,
+          time: new Date().toLocaleTimeString("zh-CN", { hour12: false }),
+        });
+        state.inbox = state.inbox.slice(0, 6);
+        renderInbox();
+      }
+
+      function renderInbox() {
+        const inbox = $("inbox");
+        inbox.innerHTML = "";
+        state.inbox.forEach((item) => {
+          const node = document.createElement("div");
+          node.className = "push-item";
+          node.textContent = `${item.time} ${item.text}`;
+          inbox.appendChild(node);
+        });
+        $("inboxCount").textContent = `${state.inbox.length} 条`;
+      }
+
+      Object.entries(pairedRanges).forEach(([inputId, rangeId]) => bindPair(inputId, rangeId));
+      $("close").addEventListener("input", () => {
+        setStateFromInputs();
+        render();
+      });
+      $("riskOffScore").addEventListener("change", () => {
+        setStateFromInputs();
+        render();
+      });
+      $("entryRR").addEventListener("input", () => {
+        setStateFromInputs();
+        render();
+      });
+      entryCheckIds.forEach((id) => {
+        $(id).addEventListener("change", () => {
+          setStateFromInputs();
+          render();
+        });
+      });
+      document.querySelectorAll(".scenario-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const scenario = button.dataset.scenario;
+          Object.assign(state, defaults, scenarios[scenario], { scenario });
+          syncInputsFromState();
+          render();
+        });
+      });
+      $("resetButton").addEventListener("click", () => {
+        Object.assign(state, defaults);
+        syncInputsFromState();
+        render();
+      });
+      $("sendButton").addEventListener("click", addPush);
+
+      syncInputsFromState();
+      render();
+    </script>
+  </body>
+</html>
