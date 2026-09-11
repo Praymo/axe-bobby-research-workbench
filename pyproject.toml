@@ -1,8 +1,0 @@
-[project]
-name = "axe-bobby-research-workbench"
-version = "0.1.0"
-description = "Offline research scoring and human-review gate demonstration"
-requires-python = ">=3.10"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
